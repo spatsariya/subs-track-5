@@ -2,11 +2,12 @@
 
 import { useState } from "react"
 import { ArrowLeft } from "lucide-react"
-import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { SubscriptionForm } from "@/components/subscription-form"
-import type { SubscriptionFormData } from "@/types/subscription"
+import type { SubscriptionFormData, Subscription } from "@/types/subscription"
+import { auth, database } from "@/lib/firebase"
+import { ref, push } from "firebase/database"
 
 export default function AddSubscriptionPage() {
   const router = useRouter()
@@ -15,32 +16,32 @@ export default function AddSubscriptionPage() {
   const handleSubmit = (data: SubscriptionFormData) => {
     setError("")
 
+    const user = auth.currentUser
+    if (!user) {
+      setError("You must be logged in to add a subscription.")
+      return
+    }
+
     try {
-      // Ensure valid dates
-      const startDate = data.startDate ? new Date(data.startDate).toISOString() : null
-      const endDate = data.endDate ? new Date(data.endDate).toISOString() : null
-      const subscribedDate = new Date().toISOString()
-
-      // Get existing subscriptions from localStorage
-      const existingSubscriptions = JSON.parse(localStorage.getItem("subscriptions") || "[]")
-
-      // Add new subscription with a unique id
-      const newSubscription = {
+      const newSubscription: Omit<Subscription, "id"> = {
         ...data,
-        id: Date.now().toString(),
-        startDate,
-        endDate,
-        subscribedDate,
-        totalSpent: 0, // Initialize total spent
+        category: data.category as Subscription["category"],
+        subscribedDate: new Date().toISOString(),
+        totalSpent: 0,
       }
 
-      // Update subscriptions in localStorage
-      localStorage.setItem("subscriptions", JSON.stringify([...existingSubscriptions, newSubscription]))
-
-      // Navigate back to subscriptions page
-      router.push("/subscriptions")
+      const subscriptionsRef = ref(database, `users/${user.uid}/subscriptions`)
+      push(subscriptionsRef, newSubscription)
+        .then(() => {
+          router.push("/subscriptions")
+        })
+        .catch((error) => {
+          console.error("Error adding subscription:", error)
+          setError("Failed to add subscription. Please try again.")
+        })
     } catch (err) {
-      setError("Failed to save subscription. Please try again.")
+      console.error("Error in handleSubmit:", err)
+      setError("An unexpected error occurred. Please try again.")
     }
   }
 

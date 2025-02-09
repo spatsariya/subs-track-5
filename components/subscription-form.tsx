@@ -6,7 +6,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import type { SubscriptionFormData, SharedUser, Category, BillingCycle } from "@/types/subscription"
+import type {
+  SubscriptionFormData,
+  SharedUser,
+  Category,
+  BillingCycle,
+  SubscriptionCategory,
+} from "@/types/subscription"
 import { isValid } from "date-fns"
 import { auth, database } from "@/lib/firebase"
 import { ref, get } from "firebase/database"
@@ -26,6 +32,7 @@ export function SubscriptionForm({ initialData, mode = "add", onSubmit, onCancel
     amount: 0,
     currency: "USD",
     cycle: "",
+    cycleName: "",
     autoRenewal: true,
     startDate: new Date().toISOString().split("T")[0],
     endDate: "",
@@ -102,6 +109,7 @@ export function SubscriptionForm({ initialData, mode = "add", onSubmit, onCancel
         ...formData,
         sharedUsers: updatedSharedUsers,
         splitEqually,
+        category: formData.category as SubscriptionCategory,
       } as SubscriptionFormData)
     }
   }
@@ -141,7 +149,7 @@ export function SubscriptionForm({ initialData, mode = "add", onSubmit, onCancel
           <Select
             disabled={isViewMode}
             value={formData.category}
-            onValueChange={(value) => setFormData({ ...formData, category: value })}
+            onValueChange={(value) => setFormData({ ...formData, category: value as SubscriptionCategory })}
           >
             <SelectTrigger className="w-full mt-1">
               <SelectValue placeholder="Not Selected" />
@@ -227,7 +235,14 @@ export function SubscriptionForm({ initialData, mode = "add", onSubmit, onCancel
           <Select
             disabled={isViewMode}
             value={formData.cycle}
-            onValueChange={(value) => setFormData({ ...formData, cycle: value })}
+            onValueChange={(value) => {
+              const selectedCycle = billingCycles.find((cycle) => cycle.id === value)
+              setFormData({
+                ...formData,
+                cycle: value,
+                cycleName: selectedCycle ? selectedCycle.name : "N/A",
+              })
+            }}
           >
             <SelectTrigger className="w-full mt-1">
               <SelectValue placeholder="Not Selected" />

@@ -16,15 +16,31 @@ export interface Subscription {
   serviceUrl?: string
   amount: number
   currency: string
-  cycle: SubscriptionCycle
+  cycle: string
   autoRenewal: boolean
-  startDate: Date
-  endDate?: Date
+  startDate: string
+  endDate?: string
   isShared: boolean
   sharedUsers: SharedUser[]
-  subscribedDate: Date
+  subscribedDate: string
   totalSpent: number
 }
 
-export type SubscriptionFormData = Omit<Subscription, "id" | "totalSpent">
+export interface Category {
+  id: string
+  name: string
+  icon: string
+}
+
+export interface BillingCycle {
+  id: string
+  name: string
+  days: number
+}
+
+export interface SubscriptionFormData extends Omit<Subscription, "id" | "totalSpent" | "subscribedDate" | "category"> {
+  splitEqually?: boolean
+  cycleName?: string
+  category: SubscriptionCategory | ""
+}
 

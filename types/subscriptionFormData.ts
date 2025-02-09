@@ -1,4 +1,6 @@
 import type { Subscription } from "@/types/subscription"
 
-export type SubscriptionFormData = Omit<Subscription, "id" | "totalSpent">
+export interface SubscriptionFormData extends Omit<Subscription, "id" | "totalSpent"> {
+  splitEqually?: boolean
+}
 

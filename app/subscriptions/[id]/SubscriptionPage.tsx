@@ -4,14 +4,15 @@ import { useState, useEffect } from "react"
 import { ArrowLeft, Pencil, Trash } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { SubscriptionForm } from "@/components/subscription-form"
 import type { Subscription, SubscriptionFormData, BillingCycle, SubscriptionCategory } from "@/types/subscription"
 import { auth, database } from "@/lib/firebase"
 import { onAuthStateChanged } from "firebase/auth"
 import { ref, get, set, remove } from "firebase/database"
 
-export default function SubscriptionPage({ id }: { id: string }) {
+export default function ViewSubscriptionPage() {
+  const params = useParams()
   const router = useRouter()
   const [subscription, setSubscription] = useState<Subscription | null>(null)
   const [isEditing, setIsEditing] = useState(false)
@@ -22,7 +23,7 @@ export default function SubscriptionPage({ id }: { id: string }) {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser)
       if (currentUser) {
-        const subscriptionRef = ref(database, `users/${currentUser.uid}/subscriptions/${id}`)
+        const subscriptionRef = ref(database, `users/${currentUser.uid}/subscriptions/${params.id}`)
         get(subscriptionRef).then((snapshot) => {
           if (snapshot.exists()) {
             setSubscription(snapshot.val())
@@ -41,7 +42,7 @@ export default function SubscriptionPage({ id }: { id: string }) {
     })
 
     return () => unsubscribe()
-  }, [id, router])
+  }, [params.id, router])
 
   const handleSubmit = (data: SubscriptionFormData) => {
     if (!user || !subscription) return
@@ -49,7 +50,7 @@ export default function SubscriptionPage({ id }: { id: string }) {
     const updatedSubscription: Subscription = {
       ...subscription,
       ...data,
-      category: data.category as SubscriptionCategory,
+      category: data.category as SubscriptionCategory, // Type assertion
       sharedUsers: data.sharedUsers.map((user) => ({
         ...user,
         amount: Number(user.amount),

@@ -1,41 +1,39 @@
+import { database } from "./firebase"
+import { ref, get } from "firebase/database"
 import type { Subscription } from "@/types/subscription"
+import type { BillingCycle } from "@/types/billing-cycle"
+import type { Category } from "@/types/category"
 
-// This is a mock function. In a real application, you would fetch this data from your database or API.
 export async function getSubscriptions(): Promise<Subscription[]> {
-  // For demonstration purposes, we're returning a static array of subscriptions.
-  // In a real application, you would fetch this data from your database or API.
-  return [
-    {
-      id: "1",
-      category: "entertainment",
-      name: "Netflix",
-      serviceUrl: "https://www.netflix.com",
-      amount: 15.99,
-      currency: "USD",
-      cycle: "monthly",
-      autoRenewal: true,
-      startDate: "2023-01-01",
-      isShared: false,
-      sharedUsers: [],
-      subscribedDate: "2023-01-01",
-      totalSpent: 191.88,
-    },
-    {
-      id: "2",
-      category: "productivity",
-      name: "Microsoft 365",
-      serviceUrl: "https://www.microsoft.com/microsoft-365",
-      amount: 69.99,
-      currency: "USD",
-      cycle: "annually",
-      autoRenewal: true,
-      startDate: "2023-02-15",
-      isShared: false,
-      sharedUsers: [],
-      subscribedDate: "2023-02-15",
-      totalSpent: 69.99,
-    },
-    // Add more mock subscriptions as needed
-  ]
+  const subscriptionsRef = ref(database, "subscriptions")
+  const snapshot = await get(subscriptionsRef)
+
+  if (snapshot.exists()) {
+    return Object.values(snapshot.val())
+  }
+
+  return []
+}
+
+export async function getBillingCycles(): Promise<BillingCycle[]> {
+  const billingCyclesRef = ref(database, "billingCycles")
+  const snapshot = await get(billingCyclesRef)
+
+  if (snapshot.exists()) {
+    return Object.values(snapshot.val())
+  }
+
+  return []
+}
+
+export async function getCategories(): Promise<Category[]> {
+  const categoriesRef = ref(database, "categories")
+  const snapshot = await get(categoriesRef)
+
+  if (snapshot.exists()) {
+    return Object.values(snapshot.val())
+  }
+
+  return []
 }
 
